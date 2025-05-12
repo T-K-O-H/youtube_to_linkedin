@@ -1682,18 +1682,40 @@ Important:
 if __name__ == "__main__":
     import nest_asyncio
     import asyncio
+    import uvicorn
+    from asyncio import new_event_loop, set_event_loop
     
-    # Apply nest_asyncio to allow nested event loops
+    # Set up the event loop
+    loop = new_event_loop()
+    set_event_loop(loop)
+    
+    # Apply nest_asyncio
     nest_asyncio.apply()
     
     # Create and configure the demo
     print_graph()  # Print the graph visualization
     demo = create_ui()
     
-    # Launch with minimal configuration
-    demo.launch(
-        server_name="0.0.0.0",  # Allow external connections
-        server_port=7860,       # Use standard Gradio port
-        share=True,             # Enable sharing
-        show_error=True         # Show detailed errors
-    ) 
+    try:
+        # Launch with minimal configuration
+        demo.launch(
+            server_name="0.0.0.0",  # Allow external connections
+            server_port=7860,       # Use standard Gradio port
+            share=True,             # Enable sharing
+            show_error=True         # Show detailed errors
+        )
+    except RuntimeError as e:
+        if "There is no current event loop" in str(e):
+            loop = new_event_loop()
+            set_event_loop(loop)
+            demo.launch(
+                server_name="0.0.0.0",
+                server_port=7860,
+                share=True,
+                show_error=True
+            )
+        else:
+            raise e
+    finally:
+        if loop.is_running():
+            loop.close() 
