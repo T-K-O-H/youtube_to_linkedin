@@ -1,5 +1,5 @@
-# Use Python 3.9 as base image
-FROM python:3.9-slim
+# Use Python 3.10 as base image
+FROM python:3.10-slim
 
 # Set working directory
 WORKDIR /app
@@ -21,7 +21,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt \
     && pip install --no-cache-dir lxml-html-clean \
     && pip install --no-cache-dir "lxml[html_clean]" \
-    && pip install --no-cache-dir trafilatura --upgrade
+    && pip install --no-cache-dir trafilatura --upgrade \
+    && pip install --no-cache-dir "fastapi>=0.68.0" \
+    && pip install --no-cache-dir "uvicorn[standard]>=0.15.0"
 
 # Copy the application code
 COPY . .
