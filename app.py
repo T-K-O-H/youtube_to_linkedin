@@ -1682,4 +1682,4 @@ Important:
 if __name__ == "__main__":
     print_graph()  # Print the graph visualization
     demo = create_ui()
-    demo.launch(server_name="0.0.0.0", server_port=7860) 
+    demo.launch(server_name="0.0.0.0", server_port=7775) 
