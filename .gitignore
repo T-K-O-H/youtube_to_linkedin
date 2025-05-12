@@ -1,0 +1,96 @@
+# Environment variables and secrets
+.env
+*.env
+.env.*
+.secrets
+secrets.json
+
+# API keys and credentials
+*_key.*
+*_keys.*
+*_secret.*
+*_credentials.*
+credentials.json
+
+# Python virtual environment
+venv/
+env/
+.venv/
+.env/
+ENV/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs and temporary files
+logs/
+*.log
+temp/
+tmp/
+.temp/
+.tmp/
+
+# Chroma database files
+chroma_db/
+.chroma/
+*.chroma
+
+# Model files and checkpoints
+*.pt
+*.pth
+*.ckpt
+*.bin
+model_checkpoints/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Local development settings
+local_settings.py
+settings_local.py
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Gradio cache and temporary files
+.gradio/
+gradio_cached_examples/
+flagged/
+
+# Data directories
+data/
+datasets/
+raw_data/
+
+# Additional project-specific files
+__pycache__/
+.pytest_cache/
+.coverage
+coverage.xml
+.tox/ 
