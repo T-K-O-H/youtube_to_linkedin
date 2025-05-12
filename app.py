@@ -25,12 +25,18 @@ from datasets import Dataset
 # import plotly.graph_objects as go
 import numpy as np
 from langchain_community.vectorstores import FAISS
+import asyncio
+import nest_asyncio
 from langchain_chroma import Chroma
 from langchain.schema import Document
 from datetime import datetime
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 # from ragas import evaluate
+
+# # Configure asyncio
+# nest_asyncio.apply()
+# asyncio.set_event_loop(asyncio.new_event_loop())
 
 # Load environment variables
 load_dotenv(verbose=True)
@@ -1084,8 +1090,6 @@ def create_ui():
         def process_with_loading(url, state):
             """Process video with loading indicators."""
             try:
-                print(f"Starting processing for URL: {url}")  # Debug log
-                
                 # Initialize state if needed
                 if "improvement_plan" not in state:
                     state["improvement_plan"] = {}
@@ -1098,10 +1102,9 @@ def create_ui():
                     
                 # Show loading indicators
                 loading_states, message = update_loading_state("transcript")
-                print("Fetching transcript...")  # Debug log
                 yield [
                     "",  # error
-                    "Starting process...",  # status
+                    "Processing...",  # status
                     message,  # transcript (loading)
                     "",  # enhanced
                     "",  # linkedin
@@ -1115,13 +1118,7 @@ def create_ui():
                 
                 # Get transcript
                 state["video_url"] = url
-                transcript_state = get_transcript(state)
-                if "error" in transcript_state and transcript_state["error"]:
-                    print(f"Error in transcript: {transcript_state['error']}")  # Debug log
-                    raise Exception(transcript_state["error"])
-                    
-                transcript_text = transcript_state["transcript"]
-                print(f"Transcript length: {len(transcript_text)}")  # Debug log
+                transcript_text = get_transcript(state)["transcript"]
                 
                 # Show enhancing state
                 loading_states, message = update_loading_state("enhance")
@@ -1142,12 +1139,7 @@ def create_ui():
                 # Enhance content
                 state["transcript"] = transcript_text
                 enhanced_state = enhance_content(state)
-                if "error" in enhanced_state and enhanced_state["error"]:
-                    print(f"Error in enhancement: {enhanced_state['error']}")  # Debug log
-                    raise Exception(enhanced_state["error"])
-                    
                 enhanced_text = enhanced_state["enhanced"]
-                print("Content enhanced successfully")  # Debug log
                 
                 # Show formatting state
                 loading_states, message = update_loading_state("format")
@@ -1168,12 +1160,7 @@ def create_ui():
                 # Format LinkedIn post
                 state["enhanced"] = enhanced_text
                 linkedin_state = format_linkedin_post(state)
-                if "error" in linkedin_state and linkedin_state["error"]:
-                    print(f"Error in formatting: {linkedin_state['error']}")  # Debug log
-                    raise Exception(linkedin_state["error"])
-                    
                 linkedin_text = linkedin_state["linkedin_post"]
-                print("LinkedIn post formatted successfully")  # Debug log
                 
                 # Show verifying state
                 loading_states, message = update_loading_state("verify")
@@ -1183,7 +1170,7 @@ def create_ui():
                     transcript_text,
                     enhanced_text,
                     linkedin_text,
-                    "🔍 Verifying...",  # verification (loading)
+                    "🔍 Verifying...\n⚖️ Analyzing accuracy...",  # verification (loading)
                     "",
                     "",
                     "",
@@ -1195,15 +1182,109 @@ def create_ui():
                 state["linkedin_post"] = linkedin_text
                 final_state = verify_content(state)
                 verification_text = format_verification_text(final_state.get("verification", {}))
-                print("Content verified successfully")  # Debug log
                 
                 # Update improvement plan and research results
                 improvement_plan_text = format_improvement_plan(final_state.get("improvement_plan", {}))
                 research_results_text = format_research_results(safe_json_loads(final_state.get("research_context", "{}")))
                 
+                # Check if enhancement is needed
+                if final_state.get("needs_improvement", False):
+                    # Show planning state
+                    loading_states, message = update_loading_state("plan")
+                    yield [
+                        "",
+                        f"Creating improvement plan (Attempt {final_state.get('enhancement_attempts', 1)}/3)...",
+                        transcript_text,
+                        enhanced_text,
+                        linkedin_text,
+                        verification_text,
+                        improvement_plan_text,
+                        research_results_text,
+                        "",
+                        state,
+                        *loading_states
+                    ]
+                    
+                    # Show researching state
+                    loading_states, message = update_loading_state("research")
+                    yield [
+                        "",
+                        f"Researching content (Attempt {final_state.get('enhancement_attempts', 1)}/3)...",
+                        transcript_text,
+                        enhanced_text,
+                        linkedin_text,
+                        verification_text,
+                        improvement_plan_text,
+                        research_results_text,
+                        "",
+                        state,
+                        *loading_states
+                    ]
+                    
+                    # Research content
+                    state = research_content(state)
+                    research_results_text = format_research_results(safe_json_loads(state.get("research_context", "{}")))
+                    
+                    # Show enhancing again state
+                    loading_states, message = update_loading_state("enhance")
+                    yield [
+                        "",
+                        f"Enhancing content again (Attempt {final_state.get('enhancement_attempts', 1)}/3)...",
+                        transcript_text,
+                        enhanced_text,
+                        linkedin_text,
+                        verification_text,
+                        improvement_plan_text,
+                        research_results_text,
+                        "",
+                        state,
+                        *loading_states
+                    ]
+                    
+                    # Enhance again
+                    state = enhance_again(state)
+                    enhanced_text = state["enhanced"]
+                    
+                    # Update LinkedIn post
+                    state["enhanced"] = enhanced_text
+                    linkedin_state = format_linkedin_post(state)
+                    linkedin_text = linkedin_state["linkedin_post"]
+                    
+                    # Verify again
+                    state["linkedin_post"] = linkedin_text
+                    final_state = verify_content(state)
+                    verification_text = format_verification_text(final_state.get("verification", {}))
+                    improvement_plan_text = format_improvement_plan(final_state.get("improvement_plan", {}))
+                    research_results_text = format_research_results(safe_json_loads(final_state.get("research_context", "{}")))
+                
+                # After research and enhancement, create improved LinkedIn post
+                if final_state.get("needs_improvement", False):
+                    # Show improved post loading state
+                    loading_states, message = update_loading_state("improved")
+                    yield [
+                        "",
+                        f"Creating improved LinkedIn post (Attempt {final_state.get('enhancement_attempts', 1)}/3)...",
+                        transcript_text,
+                        enhanced_text,
+                        linkedin_text,
+                        verification_text,
+                        improvement_plan_text,
+                        research_results_text,
+                        message,  # improved linkedin (loading)
+                        state,
+                        *loading_states
+                    ]
+                    
+                    # Create improved LinkedIn post
+                    improved_state = format_linkedin_post(final_state)
+                    improved_text = improved_state["linkedin_post"]
+                    
+                    # Update final state
+                    final_state["improved_linkedin"] = improved_text
+                
                 # Complete
                 loading_states, _ = update_loading_state("done")
-                final_result = [
+                yield [
                     "",
                     "✅ Processing complete!",
                     transcript_text,
@@ -1216,13 +1297,10 @@ def create_ui():
                     final_state,
                     *loading_states
                 ]
-                print("Processing completed successfully")  # Debug log
-                yield final_result
                 
             except Exception as e:
-                print(f"Error in processing: {str(e)}")  # Debug log
                 loading_states, _ = update_loading_state("done")
-                error_result = [
+                yield [
                     f"⚠️ Error: {str(e)}",
                     "❌ Processing failed",
                     state.get("transcript", ""),
@@ -1235,7 +1313,6 @@ def create_ui():
                     state,
                     *loading_states
                 ]
-                yield error_result
 
         # Set up event handlers
         youtube_convert_btn.click(
@@ -1610,7 +1687,6 @@ Important:
 if __name__ == "__main__":
     print_graph()  # Print the graph visualization
     demo = create_ui()
-    demo.queue()  # Enable queuing for better handling of concurrent requests
     demo.launch(
         server_name="0.0.0.0",
         server_port=None,  # Let Gradio find an available port
