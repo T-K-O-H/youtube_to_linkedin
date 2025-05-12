@@ -31,9 +31,6 @@ from datetime import datetime
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from ragas import evaluate
-import nest_asyncio
-import uvicorn
-import asyncio
 
 # Load environment variables
 load_dotenv(verbose=True)
@@ -1682,13 +1679,6 @@ Important:
         return state
 
 if __name__ == "__main__":
-    # Apply nest_asyncio first
-    nest_asyncio.apply()
-    
-    # Set the event loop policy
-    uvicorn.config.LOOP_SETUPS = {"auto": uvicorn.loops.auto.auto_loop_setup}
-    asyncio.set_event_loop_policy(uvicorn.loops.auto.AutoLoopPolicy())
-    
     # Create and configure the demo
     print_graph()  # Print the graph visualization
     demo = create_ui()
