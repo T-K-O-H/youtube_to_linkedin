@@ -1690,14 +1690,10 @@ if __name__ == "__main__":
     print_graph()  # Print the graph visualization
     demo = create_ui()
     
-    # Launch with specific configuration
+    # Launch with minimal configuration
     demo.launch(
         server_name="0.0.0.0",  # Allow external connections
         server_port=7860,       # Use standard Gradio port
         share=True,             # Enable sharing
-        show_error=True,        # Show detailed errors
-        show_api=False,         # Disable API docs
-        root_path="",          # Empty root path
-        quiet=True,            # Reduce logging noise
-        enable_queue=True      # Enable request queueing
+        show_error=True         # Show detailed errors
     ) 
