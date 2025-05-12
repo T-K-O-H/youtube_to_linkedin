@@ -9,29 +9,29 @@ from langchain_core.output_parsers import StrOutputParser
 from langgraph.graph import StateGraph, END
 from typing import Dict, TypedDict, Annotated, List, Tuple, Union, Optional
 import json
-import PyPDF2
-import requests
-from bs4 import BeautifulSoup
-import io
-import trafilatura
-import ragas
-from ragas.metrics import (
-    faithfulness,
-    answer_relevancy,
-    context_recall,
-    context_precision
-)
+# import PyPDF2
+# import requests
+# # from bs4 import BeautifulSoup
+# import io
+# # import trafilatura
+# # import ragas
+# # from ragas.metrics import (
+# #     faithfulness,
+# #     answer_relevancy,
+# #     context_recall,
+# #     context_precision
+# # )
 from datasets import Dataset
-import plotly.graph_objects as go
+# import plotly.graph_objects as go
 import numpy as np
 from langchain_community.vectorstores import FAISS
-import asyncio
+# import asyncio
 from langchain_chroma import Chroma
 from langchain.schema import Document
 from datetime import datetime
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from ragas import evaluate
+# from ragas import evaluate
 
 # Load environment variables
 load_dotenv(verbose=True)
