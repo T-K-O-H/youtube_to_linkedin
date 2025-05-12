@@ -693,168 +693,168 @@ class SentenceTransformerWrapper:
         """Synchronous embed function."""
         return self.embed_text(text)
 
-def evaluate_models(dataset):
-    """Evaluate embedding models using RAGAS metrics."""
-    try:
-        # Initialize models
-        openai_model = OpenAIEmbeddings(model="text-embedding-3-small")
+# def evaluate_models(dataset):
+#     """Evaluate embedding models using RAGAS metrics."""
+#     try:
+#         # Initialize models
+#         openai_model = OpenAIEmbeddings(model="text-embedding-3-small")
         
-        base_mpnet = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
-        base_mpnet_wrapper = SentenceTransformerWrapper(base_mpnet)
+#         base_mpnet = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
+#         base_mpnet_wrapper = SentenceTransformerWrapper(base_mpnet)
         
-        fine_tuned_model = SentenceTransformer("Shipmaster1/finetuned_mpnet_matryoshka_mnr")
-        fine_tuned_wrapper = SentenceTransformerWrapper(fine_tuned_model)
+#         fine_tuned_model = SentenceTransformer("Shipmaster1/finetuned_mpnet_matryoshka_mnr")
+#         fine_tuned_wrapper = SentenceTransformerWrapper(fine_tuned_model)
         
-        # Initialize evaluation metrics
-        metrics = [
-            faithfulness,          # How well answers align with context
-            answer_relevancy,      # How relevant answers are to questions
-            context_recall,        # How well context covers required information
-            context_precision      # How focused and precise the context is
-        ]
+#         # Initialize evaluation metrics
+#         metrics = [
+#             faithfulness,          # How well answers align with context
+#             answer_relevancy,      # How relevant answers are to questions
+#             context_recall,        # How well context covers required information
+#             context_precision      # How focused and precise the context is
+#         ]
         
-        # Create evaluation dataset with all required columns
-        eval_dataset = Dataset.from_dict({
-            "question": dataset["question"],
-            "answer": dataset["answer"],
-            "context": dataset["context"],
-            "retrieved_contexts": [[ctx] for ctx in dataset["context"]],  # Each context in its own list
-            "reference": dataset["context"]  # Using context as reference for recall calculation
-        })
+#         # Create evaluation dataset with all required columns
+#         eval_dataset = Dataset.from_dict({
+#             "question": dataset["question"],
+#             "answer": dataset["answer"],
+#             "context": dataset["context"],
+#             "retrieved_contexts": [[ctx] for ctx in dataset["context"]],  # Each context in its own list
+#             "reference": dataset["context"]  # Using context as reference for recall calculation
+#         })
         
-        # Evaluate each model and store results
-        results = {}
+#         # Evaluate each model and store results
+#         results = {}
         
-        # OpenAI model evaluation
-        openai_eval = evaluate(
-            eval_dataset,
-            metrics=metrics,
-            embeddings=openai_model,
-            llm=ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
-        )
-        results["OpenAI"] = {
-            "faithfulness": float(openai_eval._repr_dict["faithfulness"]),
-            "answer_relevancy": float(openai_eval._repr_dict["answer_relevancy"]),
-            "context_recall": float(openai_eval._repr_dict["context_recall"]),
-            "context_precision": float(openai_eval._repr_dict["context_precision"])
-        }
+#         # OpenAI model evaluation
+#         openai_eval = evaluate(
+#             eval_dataset,
+#             metrics=metrics,
+#             embeddings=openai_model,
+#             llm=ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
+#         )
+#         results["OpenAI"] = {
+#             "faithfulness": float(openai_eval._repr_dict["faithfulness"]),
+#             "answer_relevancy": float(openai_eval._repr_dict["answer_relevancy"]),
+#             "context_recall": float(openai_eval._repr_dict["context_recall"]),
+#             "context_precision": float(openai_eval._repr_dict["context_precision"])
+#         }
         
-        # Base MPNet evaluation
-        base_mpnet_eval = evaluate(
-            eval_dataset,
-            metrics=metrics,
-            embeddings=base_mpnet_wrapper,
-            llm=ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
-        )
-        results["Base MPNet"] = {
-            "faithfulness": float(base_mpnet_eval._repr_dict["faithfulness"]),
-            "answer_relevancy": float(base_mpnet_eval._repr_dict["answer_relevancy"]),
-            "context_recall": float(base_mpnet_eval._repr_dict["context_recall"]),
-            "context_precision": float(base_mpnet_eval._repr_dict["context_precision"])
-        }
+#         # Base MPNet evaluation
+#         base_mpnet_eval = evaluate(
+#             eval_dataset,
+#             metrics=metrics,
+#             embeddings=base_mpnet_wrapper,
+#             llm=ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
+#         )
+#         results["Base MPNet"] = {
+#             "faithfulness": float(base_mpnet_eval._repr_dict["faithfulness"]),
+#             "answer_relevancy": float(base_mpnet_eval._repr_dict["answer_relevancy"]),
+#             "context_recall": float(base_mpnet_eval._repr_dict["context_recall"]),
+#             "context_precision": float(base_mpnet_eval._repr_dict["context_precision"])
+#         }
         
-        # Fine-tuned MPNet evaluation
-        fine_tuned_eval = evaluate(
-            eval_dataset,
-            metrics=metrics,
-            embeddings=fine_tuned_wrapper,
-            llm=ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
-        )
-        results["Fine-tuned MPNet"] = {
-            "faithfulness": float(fine_tuned_eval._repr_dict["faithfulness"]),
-            "answer_relevancy": float(fine_tuned_eval._repr_dict["answer_relevancy"]),
-            "context_recall": float(fine_tuned_eval._repr_dict["context_recall"]),
-            "context_precision": float(fine_tuned_eval._repr_dict["context_precision"])
-        }
+#         # Fine-tuned MPNet evaluation
+#         fine_tuned_eval = evaluate(
+#             eval_dataset,
+#             metrics=metrics,
+#             embeddings=fine_tuned_wrapper,
+#             llm=ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
+#         )
+#         results["Fine-tuned MPNet"] = {
+#             "faithfulness": float(fine_tuned_eval._repr_dict["faithfulness"]),
+#             "answer_relevancy": float(fine_tuned_eval._repr_dict["answer_relevancy"]),
+#             "context_recall": float(fine_tuned_eval._repr_dict["context_recall"]),
+#             "context_precision": float(fine_tuned_eval._repr_dict["context_precision"])
+#         }
         
-        return results
+#         return results
         
-    except Exception as e:
-        print(f"Error evaluating models: {str(e)}")
-        return {}
+#     except Exception as e:
+#         print(f"Error evaluating models: {str(e)}")
+#         return {}
 
-def create_comparison_plot(results):
-    """Create a comparison plot of the evaluation metrics."""
-    # Define metrics we're using
-    metrics = [
-        'faithfulness',
-        'answer_relevancy',
-        'context_recall',
-        'context_precision'
-    ]
+# def create_comparison_plot(results):
+#     """Create a comparison plot of the evaluation metrics."""
+#     # Define metrics we're using
+#     metrics = [
+#         'faithfulness',
+#         'answer_relevancy',
+#         'context_recall',
+#         'context_precision'
+#     ]
     
-    # Extract scores for each model
-    models = list(results.keys())
-    model_scores = {
-        model: [results[model][metric] for metric in metrics]
-        for model in models
-    }
+#     # Extract scores for each model
+#     models = list(results.keys())
+#     model_scores = {
+#         model: [results[model][metric] for metric in metrics]
+#         for model in models
+#     }
     
-    fig = go.Figure()
+#     fig = go.Figure()
     
-    # Add traces for each model
-    colors = {
-        "OpenAI": 'rgb(55, 83, 109)',
-        "Base MPNet": 'rgb(26, 118, 255)',
-        "Fine-tuned MPNet": 'rgb(15, 196, 141)'
-    }
+#     # Add traces for each model
+#     colors = {
+#         "OpenAI": 'rgb(55, 83, 109)',
+#         "Base MPNet": 'rgb(26, 118, 255)',
+#         "Fine-tuned MPNet": 'rgb(15, 196, 141)'
+#     }
     
-    for model in models:
-        fig.add_trace(go.Bar(
-            name=model,
-            x=metrics,
-            y=model_scores[model],
-            marker_color=colors.get(model, 'rgb(128, 128, 128)')
-        ))
+#     for model in models:
+#         fig.add_trace(go.Bar(
+#             name=model,
+#             x=metrics,
+#             y=model_scores[model],
+#             marker_color=colors.get(model, 'rgb(128, 128, 128)')
+#         ))
     
-    # Update layout
-    fig.update_layout(
-        title='Model Comparison Metrics',
-        xaxis_title='Metrics',
-        yaxis_title='Score',
-        barmode='group',
-        yaxis=dict(range=[0, 1]),
-        showlegend=True
-    )
+#     # Update layout
+#     fig.update_layout(
+#         title='Model Comparison Metrics',
+#         xaxis_title='Metrics',
+#         yaxis_title='Score',
+#         barmode='group',
+#         yaxis=dict(range=[0, 1]),
+#         showlegend=True
+#     )
     
-    return fig
+#     return fig
 
-def run_ragas_evaluation():
-    """Run the complete RAGAS evaluation process."""
-    try:
-        # Generate synthetic dataset
-        dataset = create_synthetic_dataset()
+# def run_ragas_evaluation():
+#     """Run the complete RAGAS evaluation process."""
+#     try:
+#         # Generate synthetic dataset
+#         dataset = create_synthetic_dataset()
         
-        # Evaluate models
-        results = evaluate_models(dataset)
+#         # Evaluate models
+#         results = evaluate_models(dataset)
         
-        # Create comparison plot
-        plot = create_comparison_plot(results)
+#         # Create comparison plot
+#         plot = create_comparison_plot(results)
         
-        # Format results as markdown
-        results_md = """## Model Evaluation Results
+#         # Format results as markdown
+#         results_md = """## Model Evaluation Results
 
-### Models Being Compared
-- **OpenAI Model**: text-embedding-3-small
-- **Base MPNet**: sentence-transformers/all-mpnet-base-v2
-- **Fine-tuned Model**: Shipmaster1/finetuned_mpnet_matryoshka_mnr
+# ### Models Being Compared
+# - **OpenAI Model**: text-embedding-3-small
+# - **Base MPNet**: sentence-transformers/all-mpnet-base-v2
+# - **Fine-tuned Model**: Shipmaster1/finetuned_mpnet_matryoshka_mnr
 
-### OpenAI Model (text-embedding-3-small)
-"""
-        for metric in results["OpenAI"]:
-            results_md += "- {}: {:.3f}\n".format(metric, results["OpenAI"][metric])
+# ### OpenAI Model (text-embedding-3-small)
+# """
+#         for metric in results["OpenAI"]:
+#             results_md += "- {}: {:.3f}\n".format(metric, results["OpenAI"][metric])
         
-        results_md += "\n### Base MPNet Model (all-mpnet-base-v2)\n"
-        for metric in results["Base MPNet"]:
-            results_md += "- {}: {:.3f}\n".format(metric, results["Base MPNet"][metric])
+#         results_md += "\n### Base MPNet Model (all-mpnet-base-v2)\n"
+#         for metric in results["Base MPNet"]:
+#             results_md += "- {}: {:.3f}\n".format(metric, results["Base MPNet"][metric])
         
-        results_md += "\n### Fine-tuned Model (finetuned_mpnet_matryoshka_mnr)\n"
-        for metric in results["Fine-tuned MPNet"]:
-            results_md += "- {}: {:.3f}\n".format(metric, results["Fine-tuned MPNet"][metric])
+#         results_md += "\n### Fine-tuned Model (finetuned_mpnet_matryoshka_mnr)\n"
+#         for metric in results["Fine-tuned MPNet"]:
+#             results_md += "- {}: {:.3f}\n".format(metric, results["Fine-tuned MPNet"][metric])
         
-        return results_md, plot
-    except Exception as e:
-        return f"Error during evaluation: {str(e)}", None
+#         return results_md, plot
+#     except Exception as e:
+#         return f"Error during evaluation: {str(e)}", None
 
 def create_ui():
     with gr.Blocks(theme='JohnSmith9982/small_and_pretty') as demo:
@@ -1016,39 +1016,39 @@ def create_ui():
                     """
                 )
 
-            with gr.TabItem("RAGAS Evaluation"):
-                gr.Markdown(
-                    """
-                    # RAGAS Model Evaluation
-                    Compare the performance of three embedding models using synthetic data.
+            # with gr.TabItem("RAGAS Evaluation"):
+            #     gr.Markdown(
+            #         """
+            #         # RAGAS Model Evaluation
+            #         Compare the performance of three embedding models using synthetic data.
                     
-                    ### Models Being Evaluated
-                    - **OpenAI Model**: text-embedding-3-small (Not Free)
-                    - **Base MPNet**: sentence-transformers/all-mpnet-base-v2 (Open Source)
-                    - **Fine-tuned Model**: Shipmaster1/finetuned_mpnet_matryoshka_mnr (Free Custom, trained on YouTube transcript handling)
+            #         ### Models Being Evaluated
+            #         - **OpenAI Model**: text-embedding-3-small (Not Free)
+            #         - **Base MPNet**: sentence-transformers/all-mpnet-base-v2 (Open Source)
+            #         - **Fine-tuned Model**: Shipmaster1/finetuned_mpnet_matryoshka_mnr (Free Custom, trained on YouTube transcript handling)
                     
-                    The evaluation uses GPT-3.5 Turbo to assess the quality of the embeddings through various metrics:
-                    - Faithfulness: How well the answers align with the provided context
-                    - Answer Relevancy: How relevant the answers are to the questions
-                    - Context Recall: How well the model retrieves relevant context
-                    - Context Precision: How precise the retrieved context is
+            #         The evaluation uses GPT-3.5 Turbo to assess the quality of the embeddings through various metrics:
+            #         - Faithfulness: How well the answers align with the provided context
+            #         - Answer Relevancy: How relevant the answers are to the questions
+            #         - Context Recall: How well the model retrieves relevant context
+            #         - Context Precision: How precise the retrieved context is
                     
                     
-                    Click the run button to find out how well the models perform on the synthetic data.
-                    """
-                )
+            #         Click the run button to find out how well the models perform on the synthetic data.
+            #         """
+            #     )
                 
-                with gr.Row():
-                    evaluate_btn = gr.Button("Run Evaluation", variant="primary", size="lg")
+            #     with gr.Row():
+            #         evaluate_btn = gr.Button("Run Evaluation", variant="primary", size="lg")
                 
-                with gr.Row():
-                    results_md = gr.Markdown(label="Evaluation Results")
-                    plot_output = gr.Plot(label="Comparison Plot")
+            #     with gr.Row():
+            #         results_md = gr.Markdown(label="Evaluation Results")
+            #         plot_output = gr.Plot(label="Comparison Plot")
                 
-                evaluate_btn.click(
-                    fn=run_ragas_evaluation,
-                    outputs=[results_md, plot_output]
-                )
+            #     evaluate_btn.click(
+            #         fn=run_ragas_evaluation,
+            #         outputs=[results_md, plot_output]
+            #     )
 
         def update_loading_state(stage: str):
             """Update loading indicators based on current stage."""
@@ -1367,32 +1367,32 @@ def print_graph():
     """)
     print("-----------------------------\n")
 
-def extract_text_from_webpage(url: str) -> str:
-    """Extract main content text from a webpage."""
-    try:
-        # Use trafilatura for better content extraction
-        downloaded = trafilatura.fetch_url(url)
-        if downloaded:
-            text = trafilatura.extract(downloaded, include_links=False, include_images=False)
-            if text:
-                return text.strip()
+# def extract_text_from_webpage(url: str) -> str:
+#     """Extract main content text from a webpage."""
+#     try:
+#         # Use trafilatura for better content extraction
+#         downloaded = trafilatura.fetch_url(url)
+#         if downloaded:
+#             text = trafilatura.extract(downloaded, include_links=False, include_images=False)
+#             if text:
+#                 return text.strip()
             
-        # Fallback to basic BeautifulSoup extraction
-        response = requests.get(url)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'html.parser')
+#         # Fallback to basic BeautifulSoup extraction
+#         response = requests.get(url)
+#         response.raise_for_status()
+#         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # Remove script and style elements
-        for script in soup(["script", "style"]):
-            script.decompose()
+#         # Remove script and style elements
+#         for script in soup(["script", "style"]):
+#             script.decompose()
             
-        text = soup.get_text()
-        lines = (line.strip() for line in text.splitlines())
-        chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
-        text = ' '.join(chunk for chunk in chunks if chunk)
-        return text.strip()
-    except Exception as e:
-        raise Exception(f"Error extracting webpage content: {str(e)}")
+#         text = soup.get_text()
+#         lines = (line.strip() for line in text.splitlines())
+#         chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+#         text = ' '.join(chunk for chunk in chunks if chunk)
+#         return text.strip()
+#     except Exception as e:
+#         raise Exception(f"Error extracting webpage content: {str(e)}")
 
 def process_youtube_video(video_url: str, model_name: str = "Shipmaster1/finetuned_mpnet_matryoshka_mnr"):
     """Process a YouTube video and store its content in the vector store using LangChain."""
@@ -1434,40 +1434,40 @@ def process_youtube_video(video_url: str, model_name: str = "Shipmaster1/finetun
     except Exception as e:
         return None, f"Error processing video: {str(e)}"
 
-def process_webpage(url: str, model_name: str = "Shipmaster1/finetuned_mpnet_matryoshka_mnr"):
-    """Process a webpage and store its content in the vector store using LangChain."""
-    try:
-        # Get webpage content
-        content = extract_text_from_webpage(url)
-        if not content:
-            return None, "Failed to extract webpage content"
+# def process_webpage(url: str, model_name: str = "Shipmaster1/finetuned_mpnet_matryoshka_mnr"):
+#     """Process a webpage and store its content in the vector store using LangChain."""
+#     try:
+#         # Get webpage content
+#         content = extract_text_from_webpage(url)
+#         if not content:
+#             return None, "Failed to extract webpage content"
             
-        # Create document with metadata
-        doc = Document(
-            page_content=content,
-            metadata={
-                "url": url,
-                "source": "webpage",
-                "timestamp": datetime.now().isoformat()
-            }
-        )
+#         # Create document with metadata
+#         doc = Document(
+#             page_content=content,
+#             metadata={
+#                 "url": url,
+#                 "source": "webpage",
+#                 "timestamp": datetime.now().isoformat()
+#             }
+#         )
         
-        # Split text into chunks
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200,
-            length_function=len,
-        )
-        chunks = text_splitter.split_documents([doc])
+#         # Split text into chunks
+#         text_splitter = RecursiveCharacterTextSplitter(
+#             chunk_size=1000,
+#             chunk_overlap=200,
+#             length_function=len,
+#         )
+#         chunks = text_splitter.split_documents([doc])
         
-        # Store in Chroma using LangChain's abstraction
-        collection = get_chroma_collection(model_name)
-        collection.add_documents(chunks)
+#         # Store in Chroma using LangChain's abstraction
+#         collection = get_chroma_collection(model_name)
+#         collection.add_documents(chunks)
         
-        return doc, "Successfully processed webpage"
+#         return doc, "Successfully processed webpage"
         
-    except Exception as e:
-        return None, f"Error processing webpage: {str(e)}"
+#     except Exception as e:
+#         return None, f"Error processing webpage: {str(e)}"
 
 def agent_decide(state: ProcessState, progress=gr.Progress()) -> ProcessState:
     """Agent decides whether to enhance content further based on verification score and creates an improvement plan."""
