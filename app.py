@@ -841,16 +841,16 @@ def run_ragas_evaluation():
 
 ### OpenAI Model (text-embedding-3-small)
 """
-        for metric in results["OpenAI"]:
-            results_md += f"- {metric}: {results["OpenAI"][metric]:.3f}\n"
+        for metric in results['OpenAI']:
+            results_md += f"- {metric}: {results['OpenAI'][metric]:.3f}\n"
         
         results_md += "\n### Base MPNet Model (all-mpnet-base-v2)\n"
-        for metric in results["Base MPNet"]:
-            results_md += f"- {metric}: {results["Base MPNet"][metric]:.3f}\n"
+        for metric in results['Base MPNet']:
+            results_md += f"- {metric}: {results['Base MPNet'][metric]:.3f}\n"
         
         results_md += "\n### Fine-tuned Model (finetuned_mpnet_matryoshka_mnr)\n"
-        for metric in results["Fine-tuned MPNet"]:
-            results_md += f"- {metric}: {results["Fine-tuned MPNet"][metric]:.3f}\n"
+        for metric in results['Fine-tuned MPNet']:
+            results_md += f"- {metric}: {results['Fine-tuned MPNet'][metric]:.3f}\n"
         
         return results_md, plot
     except Exception as e:
