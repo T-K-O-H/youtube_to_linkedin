@@ -1342,16 +1342,41 @@ def create_ui():
                 research_loading,
                 improved_loading
             ],
-            show_progress=False
+            show_progress=True,  # Show progress bar
+            api_name="convert"  # Name the API endpoint
         )
         
-        # Update error visibility
+        # Update error visibility with immediate feedback
         error.change(
-            lambda x: gr.update(visible=bool(x)),
+            lambda x: gr.update(visible=bool(x), value=x),  # Update both visibility and value
             error,
-            error
+            error,
+            queue=False  # Process immediately
         )
-    
+
+        # Add loading state visibility updates
+        def update_loading_visibility(is_loading):
+            return {
+                loading: gr.update(visible=is_loading)
+                for loading in [
+                    transcript_loading,
+                    enhanced_loading,
+                    linkedin_loading,
+                    verify_loading,
+                    plan_loading,
+                    research_loading,
+                    improved_loading
+                ]
+            }
+
+        youtube_convert_btn.click(
+            lambda: update_loading_visibility(True),
+            None,
+            [transcript_loading, enhanced_loading, linkedin_loading, 
+             verify_loading, plan_loading, research_loading, improved_loading],
+            queue=False
+        )
+
     return demo
 
 def print_graph():
@@ -1710,9 +1735,11 @@ Important:
 if __name__ == "__main__":
     print_graph()  # Print the graph visualization
     demo = create_ui()
+    demo.queue()  # Enable queuing for better handling of concurrent requests
     demo.launch(
-        server_name="0.0.0.0",
-        server_port=None,  # Let Gradio find an available port
+        server_name="0.0.0.0",  # Required for Hugging Face Spaces
+        server_port=7860,  # Standard port for Hugging Face Spaces
+        share=False,  # Disable sharing as it's not needed on Spaces
         show_error=True,
         share=True,
         show_api=False
