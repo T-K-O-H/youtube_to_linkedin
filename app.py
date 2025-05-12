@@ -1629,20 +1629,14 @@ Important:
         return state
 
 if __name__ == "__main__":
-    import asyncio
-    from functools import partial
-    
     # Create and configure the demo
     print_graph()  # Print the graph visualization
     demo = create_ui()
     
-    # Configure async event loop
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    
     # Launch with queue and specific port
-    demo.queue(concurrency_count=3).launch(
+    demo.queue().launch(
         server_name="0.0.0.0",
         server_port=7862,
-        prevent_thread_lock=True
+        share=True,
+        show_error=True
     )
