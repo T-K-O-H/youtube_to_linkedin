@@ -25,14 +25,13 @@ from datasets import Dataset
 import plotly.graph_objects as go
 import numpy as np
 from langchain_community.vectorstores import FAISS
+import asyncio
 from langchain_chroma import Chroma
 from langchain.schema import Document
 from datetime import datetime
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from ragas import evaluate
-import nest_asyncio
-import asyncio
 
 # Load environment variables
 load_dotenv(verbose=True)
@@ -1681,13 +1680,12 @@ Important:
         return state
 
 if __name__ == "__main__":
-    # Apply nest_asyncio first
-    nest_asyncio.apply()
-    
-    # Set up event loop policy
-    asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
-    
-    # Create and configure the demo
     print_graph()  # Print the graph visualization
     demo = create_ui()
-    demo.queue().launch(server_port=7862)
+    demo.launch(
+        server_name="0.0.0.0",
+        server_port=None,  # Let Gradio find an available port
+        show_error=True,
+        share=True,
+        show_api=False
+    ) 
