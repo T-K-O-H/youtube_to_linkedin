@@ -1684,7 +1684,7 @@ if __name__ == "__main__":
     demo = create_ui()
     demo.launch(
         server_name="0.0.0.0",
-        server_port=7860,
+        server_port=None,  # Let Gradio find an available port
         show_error=True,
         share=True,
         show_api=False
