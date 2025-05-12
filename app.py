@@ -25,7 +25,6 @@ from datasets import Dataset
 import plotly.graph_objects as go
 import numpy as np
 from langchain_community.vectorstores import FAISS
-import asyncio
 from langchain_chroma import Chroma
 from langchain.schema import Document
 from datetime import datetime
@@ -1683,4 +1682,4 @@ if __name__ == "__main__":
     # Create and configure the demo
     print_graph()  # Print the graph visualization
     demo = create_ui()
-    demo.queue().launch() 
+    demo.queue().launch(server_port=7862)
