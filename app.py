@@ -1739,8 +1739,7 @@ if __name__ == "__main__":
     demo.launch(
         server_name="0.0.0.0",  # Required for Hugging Face Spaces
         server_port=7860,  # Standard port for Hugging Face Spaces
-        share=False,  # Disable sharing as it's not needed on Spaces
         show_error=True,
-        share=True,
+        share=True,  # Enable sharing for development
         show_api=False
     ) 
