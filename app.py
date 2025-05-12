@@ -1680,6 +1680,24 @@ Important:
         return state
 
 if __name__ == "__main__":
+    import nest_asyncio
+    import asyncio
+    
+    # Apply nest_asyncio to allow nested event loops
+    nest_asyncio.apply()
+    
+    # Create and configure the demo
     print_graph()  # Print the graph visualization
     demo = create_ui()
-    demo.launch(server_name="0.0.0.0", server_port=7860) 
+    
+    # Launch with specific configuration
+    demo.launch(
+        server_name="0.0.0.0",  # Allow external connections
+        server_port=7860,       # Use standard Gradio port
+        share=True,             # Enable sharing
+        show_error=True,        # Show detailed errors
+        show_api=False,         # Disable API docs
+        root_path="",          # Empty root path
+        quiet=True,            # Reduce logging noise
+        enable_queue=True      # Enable request queueing
+    ) 

@@ -27,11 +27,15 @@ RUN pip install --no-cache-dir -r requirements.txt \
 COPY . .
 
 # Set environment variables
+ENV PYTHONUNBUFFERED=1
 ENV GRADIO_SERVER_NAME=0.0.0.0
 ENV GRADIO_SERVER_PORT=7860
+ENV PYTHONPATH=/app
+ENV GRADIO_ANALYTICS_ENABLED=false
+ENV PYTHONASYNCIO=1
 
 # Expose the port
 EXPOSE 7860
 
-# Run the application
-CMD ["python", "app.py"] 
+# Run the application with asyncio support
+CMD ["python", "-X", "dev", "-u", "app.py"] 
