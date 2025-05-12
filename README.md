@@ -1,43 +1,55 @@
-# YouTube Content Enhancer
+---
+title: YouTube to LinkedIn Post Converter
+emoji: 🎥
+colorFrom: blue
+colorTo: green
+sdk: gradio
+sdk_version: 4.0.0
+app_file: app.py
+pinned: false
+license: mit
+---
 
-This application uses LangGraph to transform YouTube video transcripts into various content formats. It processes videos through a workflow that includes transcript extraction, content enhancement, formatting, and verification.
+# YouTube to LinkedIn Post Converter
+
+This application converts YouTube video content into professional LinkedIn posts using AI-powered content enhancement and RAGAS evaluation metrics.
 
 ## Features
 
-- Extract transcripts from YouTube videos
-- Enhance and structure the content
-- Convert content into multiple formats (blog post, LinkedIn post, Twitter thread)
-- Verify content accuracy
-- Modern Streamlit UI for easy interaction
+- 🎥 YouTube transcript extraction
+- ✨ AI-powered content enhancement
+- 📊 RAGAS evaluation metrics
+- 🔄 Automatic content verification
+- 📱 Professional LinkedIn post formatting
 
-## Setup
+## Models
 
-1. Clone this repository
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Create a `.env` file in the root directory and add your OpenAI API key:
-   ```
-   OPENAI_API_KEY=your_api_key_here
-   ```
+The application uses three embedding models for comparison:
+- OpenAI's text-embedding-3-small
+- Base MPNet (sentence-transformers/all-mpnet-base-v2)
+- Fine-tuned MPNet (Shipmaster1/finetuned_mpnet_matryoshka_mnr)
+
+## Evaluation Metrics
+
+- Faithfulness: How well answers align with context
+- Answer Relevancy: How relevant answers are to questions
+- Context Recall: How well context covers required information
+- Context Precision: How focused and precise the context is
 
 ## Usage
 
-1. Run the Streamlit app:
-   ```bash
-   streamlit run app.py
-   ```
-2. Open your browser to the provided URL (usually http://localhost:8501)
-3. Enter a YouTube URL and click "Process Video"
-4. View the generated content in different formats
+1. Enter a YouTube URL
+2. Wait for transcript extraction
+3. Review enhanced content
+4. Get your professional LinkedIn post
 
-## Requirements
+## Installation
 
-- Python 3.8+
-- OpenAI API key
-- Internet connection for YouTube access
+```bash
+pip install -r requirements.txt
+python app.py
+```
 
-## Note
+## License
 
-This application uses the `youtube-transcript-api` package to fetch transcripts without requiring a YouTube API key. However, some videos may not have available transcripts or may have disabled transcript access. 
+MIT License 
