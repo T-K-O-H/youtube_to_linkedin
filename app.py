@@ -139,8 +139,13 @@ def get_transcript(state: ProcessState, progress=gr.Progress()) -> ProcessState:
         state["status"] = "✅ Transcript fetched"
         return state
     except Exception as e:
-        state["error"] = f"⚠️ Error fetching transcript: {str(e)}"
-        state["status"] = "❌ Failed to fetch transcript"
+        error_message = str(e).lower()
+        if "too many requests" in error_message or "429" in error_message:
+            state["error"] = "⚠️ YouTube API rate limit reached. Please wait a few minutes and try again."
+            state["status"] = "❌ Rate limit exceeded"
+        else:
+            state["error"] = f"⚠️ Error fetching transcript: {str(e)}"
+            state["status"] = "❌ Failed to fetch transcript"
         return state
 
 def get_chroma_collection(model_name: str = "Shipmaster1/finetuned_mpnet_matryoshka_mnr"):
@@ -1354,21 +1359,39 @@ def print_graph():
     print("\nWorkflow Graph Visualization:")
     print("-----------------------------")
     print("""
-    Main Workflow with Agentic Enhancement:
-    [get_transcript] -> [enhance_content] -> [format_linkedin] -> [verify_content] -> [agent_decide] -> [END]
-           |                      |                 |                  |                    |
-           |                      |                 |                  |                    |
-           v                      v                 v                  v                    v
-        [ERROR] -> [END]      [ERROR] -> [END]   [ERROR] -> [END]   [ERROR] -> [END]    [ERROR] -> [END]
-                                                                    |
-                                                                    v
-                                                              [needs_improvement]
-                                                                    |
-                                                                    v
-                                                              [research_content] -> [enhance_again] -> [verify_content]
-                                                                    |                      |                  |
-                                                                    v                      v                  v
-                                                              [ERROR] -> [END]        [ERROR] -> [END]    [ERROR] -> [END]
+    Main Workflow with Error Handling and Enhancement:
+    
+    [YouTube URL] -> [get_transcript] -----> [enhance_content] -> [format_linkedin] -> [verify_content] -> [agent_decide] -> [END]
+           |              |                         |                    |                   |                |
+           |              |                         |                    |                   |                |
+           v              v                         v                    v                   v                v
+        [Invalid]    [Rate Limit]              [ERROR]              [ERROR]             [ERROR]          [needs_improvement]
+           |              |                         |                    |                   |                |
+           v              v                         v                    v                   v                |
+         [END]        [Wait & Retry]             [END]               [END]               [END]               |
+                                                                                                            |
+                                                                                                            v
+                                                                                                    [research_content]
+                                                                                                            |
+                                                                                                            v
+                                                                                                    [enhance_again]
+                                                                                                            |
+                                                                                                            v
+                                                                                                    [verify_content]
+                                                                                                            |
+                                                                                                            v
+                                                                                                    [Improvement Loop]
+                                                                                                    (max 3 attempts)
+    
+    Error Types:
+    - Rate Limit: YouTube API quota exceeded
+    - Invalid: Malformed or unsupported URL
+    - ERROR: General processing errors
+    
+    Enhancement Loop:
+    - Triggered if content needs improvement
+    - Limited to 3 attempts
+    - Includes research and verification
     """)
     print("-----------------------------\n")
 
