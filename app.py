@@ -1680,35 +1680,7 @@ Important:
         return state
 
 if __name__ == "__main__":
-    import nest_asyncio
-    import asyncio
-    import uvicorn
-    from fastapi import FastAPI
-    from contextlib import asynccontextmanager
-    
-    # Initialize FastAPI
-    app = FastAPI()
-    
-    @asynccontextmanager
-    async def lifespan(app: FastAPI):
-        # Set up the event loop
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        nest_asyncio.apply()
-        yield
-        if loop.is_running():
-            loop.close()
-    
-    app.router.lifespan_context = lifespan
-    
     # Create and configure the demo
     print_graph()  # Print the graph visualization
     demo = create_ui()
-    
-    # Launch with minimal configuration
-    demo.launch(
-        server_name="0.0.0.0",
-        server_port=7860,
-        share=True,
-        show_error=True
-    ) 
+    demo.queue().launch() 

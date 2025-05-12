@@ -21,23 +21,13 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt \
     && pip install --no-cache-dir lxml-html-clean \
     && pip install --no-cache-dir "lxml[html_clean]" \
-    && pip install --no-cache-dir trafilatura --upgrade \
-    && pip install --no-cache-dir "fastapi>=0.68.0" \
-    && pip install --no-cache-dir "uvicorn[standard]>=0.15.0"
+    && pip install --no-cache-dir trafilatura --upgrade
 
 # Copy the application code
 COPY . .
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
-ENV GRADIO_SERVER_NAME=0.0.0.0
-ENV GRADIO_SERVER_PORT=7860
-ENV PYTHONPATH=/app
-ENV GRADIO_ANALYTICS_ENABLED=false
-ENV PYTHONASYNCIO=1
 
-# Expose the port
-EXPOSE 7860
-
-# Run the application with asyncio support
-CMD ["python", "-X", "dev", "-u", "app.py"] 
+# Run the application
+CMD ["python", "app.py"] 
