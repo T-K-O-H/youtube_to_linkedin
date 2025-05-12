@@ -339,7 +339,7 @@ def should_continue(state: ProcessState) -> bool:
     """Determine if processing should continue."""
     return not state.get("error", "")
 
-def create_workflow() -> StateGraph:
+async def create_workflow() -> StateGraph:
     """Create the LangGraph workflow."""
     workflow = StateGraph(ProcessState)
     
@@ -375,59 +375,9 @@ def create_workflow() -> StateGraph:
     workflow.add_edge("research_content", "enhance_again")
     workflow.add_edge("enhance_again", "verify_content")
     
-    # Add conditional edges for error handling
-    workflow.add_conditional_edges(
-        "get_transcript",
-        should_continue,
-        {
-            True: "enhance_content",
-            False: END
-        }
-    )
-    workflow.add_conditional_edges(
-        "enhance_content",
-        should_continue,
-        {
-            True: "format_linkedin",
-            False: END
-        }
-    )
-    workflow.add_conditional_edges(
-        "format_linkedin",
-        should_continue,
-        {
-            True: "verify_content",
-            False: END
-        }
-    )
-    workflow.add_conditional_edges(
-        "verify_content",
-        should_continue,
-        {
-            True: "agent_decide",
-            False: END
-        }
-    )
-    workflow.add_conditional_edges(
-        "research_content",
-        should_continue,
-        {
-            True: "enhance_again",
-            False: END
-        }
-    )
-    workflow.add_conditional_edges(
-        "enhance_again",
-        should_continue,
-        {
-            True: "verify_content",
-            False: END
-        }
-    )
-    
     return workflow
 
-def process_video(video_url: str, progress=gr.Progress()) -> tuple:
+async def process_video(video_url: str, progress=gr.Progress()) -> tuple:
     """Process YouTube video and generate LinkedIn post."""
     try:
         # Input validation
@@ -463,9 +413,9 @@ def process_video(video_url: str, progress=gr.Progress()) -> tuple:
         )
         
         # Create and run workflow
-        workflow = create_workflow()
+        workflow = await create_workflow()
         app = workflow.compile()
-        final_state = app.invoke(initial_state)
+        final_state = await app.ainvoke(initial_state)
         
         # Format verification text
         if final_state.get("verification"):
@@ -495,12 +445,12 @@ def process_video(video_url: str, progress=gr.Progress()) -> tuple:
             ""                      # verification
         )
 
-def process_from_stage(state: ProcessState, start_stage: str, progress=gr.Progress()) -> tuple:
+async def process_from_stage(state: ProcessState, start_stage: str, progress=gr.Progress()) -> tuple:
     """Process content from a specific stage onwards."""
     try:
         # Select appropriate workflow based on stage
         if start_stage == "enhance":
-            workflow = create_workflow()
+            workflow = await create_workflow()
             if not state["transcript"]:
                 return (
                     "⚠️ No transcript available to enhance",
@@ -511,7 +461,7 @@ def process_from_stage(state: ProcessState, start_stage: str, progress=gr.Progre
                     ""
                 )
         elif start_stage == "format":
-            workflow = create_workflow()
+            workflow = await create_workflow()
             if not state["enhanced"]:
                 return (
                     "⚠️ No enhanced content available to format",
@@ -522,10 +472,10 @@ def process_from_stage(state: ProcessState, start_stage: str, progress=gr.Progre
                     ""
                 )
         else:
-            workflow = create_workflow()
+            workflow = await create_workflow()
         
         app = workflow.compile()
-        final_state = app.invoke(state)
+        final_state = await app.ainvoke(state)
         
         # Format verification text
         if final_state.get("verification"):
@@ -1081,7 +1031,7 @@ def create_ui():
                 gr.update(visible=state) for state in states.get(stage, [False] * 7)
             ], current_message
 
-        def process_with_loading(url, state):
+        async def process_with_loading(url, state):
             """Process video with loading indicators."""
             try:
                 # Initialize state if needed
@@ -1236,7 +1186,7 @@ def create_ui():
                     ]
                     
                     # Enhance again
-                    state = enhance_again(state)
+                    state = await enhance_again(state)
                     enhanced_text = state["enhanced"]
                     
                     # Update LinkedIn post
@@ -1615,7 +1565,7 @@ def research_content(state: ProcessState, progress=gr.Progress()) -> ProcessStat
         state["status"] = "❌ Failed to research content"
         return state
 
-def enhance_again(state: ProcessState, progress=gr.Progress()) -> ProcessState:
+async def enhance_again(state: ProcessState, progress=gr.Progress()) -> ProcessState:
     """Enhance content using research and improvement plan."""
     try:
         progress(0.97, desc="Enhancing content based on research and plan...")
@@ -1661,7 +1611,7 @@ Important:
         ])
         
         chain = prompt | llm | StrOutputParser()
-        enhanced = chain.invoke({
+        enhanced = await chain.ainvoke({
             "content": state["enhanced"],
             "plan": json.dumps(plan),
             "research": json.dumps(research_context),
@@ -1679,7 +1629,20 @@ Important:
         return state
 
 if __name__ == "__main__":
+    import asyncio
+    from functools import partial
+    
     # Create and configure the demo
     print_graph()  # Print the graph visualization
     demo = create_ui()
-    demo.queue().launch(server_port=7862)
+    
+    # Configure async event loop
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
+    # Launch with queue and specific port
+    demo.queue(concurrency_count=3).launch(
+        server_name="0.0.0.0",
+        server_port=7862,
+        prevent_thread_lock=True
+    )
